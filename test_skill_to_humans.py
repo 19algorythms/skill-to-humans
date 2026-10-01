@@ -152,6 +152,17 @@ class DecodeEngineTest(unittest.TestCase):
         self.assertIn("⟦HOMOGLYPH: Cyrillic \u0430 U+0430 -> 'a'⟧", s)
         self.assertIn("⟦HOMOGLYPH: Cyrillic \u0430 U+0430 -> 'a'⟧", s)
 
+    def test_f5_url_json_escaped_slashes(self):
+        """v1.2: https:\/\/... (valid JSON escape) must be detected.
+        Raw file bytes contain ONE backslash per slash; the engine must
+        reveal the URL data anyway."""
+        brut = '{"endpoint": "https:\\/\\/example.org\\/c?d=' + WORD2_B64 + '"}'
+        p = self.root / "fixture_f5b_url_json_escapes.md"
+        p.write_text(brut, encoding="utf-8")
+        text, notes = engine.read_file(p)
+        rendered, ctx = engine.render_text(text)
+        self.assertIn('⟦URL-DATA → d = "canari" (base64-decoded)⟧', rendered)
+
     def test_f4_eval_echo_escaped_quotes(self):
         """v1.1: eval $(echo \"...\" | base64 -d) with JSON-escaped quotes —
         the blob must be revealed despite the backslashes."""

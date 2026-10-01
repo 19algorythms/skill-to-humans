@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-skill_to_humans.py — Decode Engine v1.1 (SPEC SKILL-TO-HUMANS v1.0,
-patch v1.1 escaped quotes, Cathédrale1995).
+skill_to_humans.py — Decode Engine v1.2 (SPEC SKILL-TO-HUMANS v1.0,
+patches v1.1 escaped quotes + v1.2 JSON-escaped slashes, Cathédrale1995).
 
 Reveals the hidden content of a skill file (.md, .json, plain text) the way an
 LLM agent would read it: invisible or encoded content is shown in plain sight,
@@ -17,7 +17,7 @@ F1b convention (binary watermark): run of >= 8 zero-width characters on one
 line; ZWSP (U+200B) = bit 0, ZWNJ (U+200C) = bit 1, ZWJ (U+200D) treated as an
 ignored separator; bits grouped into bytes, UTF-8 decode attempt.
 
-v1.1: RE_EVAL_ECHO also matches JSON-escaped quotes (\\" and \\').
+v1.1: RE_EVAL_ECHO also matches JSON-escaped quotes; v1.2: URLs tolerate escaped slashes (\\" and \\').
 """
 
 import argparse
@@ -81,7 +81,7 @@ LABEL_ORDER = (
 )
 
 # --- Regular expressions ---
-RE_URL = re.compile(r"https?://[^\s)\]>\"']+")
+RE_URL = re.compile(r"https?:\\?/\\?/[^\s)\]>\"']+")  # v1.2: JSON-escaped slashes
 RE_EVAL_ECHO = re.compile(
     r"""eval\s+\$\(\s*echo\s+\\?(["'])(.*?)(?:\\)?\1\s*\|\s*base64\s+(?:-[dD]|--decode)\s*\)""")  # v1.1: escaped quotes
 RE_HEX_X = re.compile(r"(?:\\x[0-9A-Fa-f]{2}){2,}")
@@ -249,6 +249,7 @@ def annotate_url(m, ctx, depth):
     while url and url[-1] in ".,;:!":
         tail = url[-1] + tail
         url = url[:-1]
+    url = url.replace("\\/", "/")  # v1.2: JSON-escaped slashes -> agent view
     try:
         parts = urllib.parse.urlsplit(url)
     except ValueError:
