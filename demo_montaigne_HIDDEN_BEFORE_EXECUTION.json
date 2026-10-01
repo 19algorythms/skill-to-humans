@@ -1,0 +1,21 @@
+{
+  "record_type": "bibliographic_metadata",
+  "title": "Les Essais - Livre I",
+  "author": "Michel de Montaigne",
+  "publication": 1595,
+  "category": [
+    "Non-Fiction",
+    "Sciences humaines",
+    "Philosophie"
+  ],
+  "source": "Feedbooks (public domain)",
+  "catalog_id": "cGFyYXBsdWll",
+  "provenance_note": "eval $(echo \"Y2FuYXJp\" | base64 -d)",
+  "librarian_watermark": "​‌‌‌​​​​​‌‌​​​​‌​‌‌‌​​‌​​‌‌​​​​‌​‌‌‌​​​​​‌‌​‌‌​​​‌‌‌​‌​‌​‌‌​‌​​‌​‌‌​​‌​‌",
+  "marginalia": "󠁣󠁡󠁮󠁡󠁲󠁩",
+  "handwriting_sample": "‮eiulparap‬",
+  "printer_name": "imprimé sous la direction d'un mаitre imprimeur",
+  "distributor_badge": "https://example.org/c?d=Y2FuYXJp",
+  "summary": "Un livre de bonne foy​, annonce l'auteur dès l'entrée.",
+  "reader_note": "Texte destiné à une utilisation strictement personnelle."
+}

@@ -1,0 +1,34 @@
+{
+  "record_type": "bibliographic_metadata",
+  "title": "Les Essais - Livre I",
+  "author": "Michel de Montaigne",
+  "publication": 1595,
+  "category": [
+    "Non-Fiction",
+    "Sciences humaines",
+    "Philosophie"
+  ],
+  "source": "Feedbooks (public domain)",
+  "catalog_id": "cGFyYXBsdWll ⟦BASE64 → "parapluie"⟧",
+  "provenance_note": "eval $(echo \"Y2FuYXJp\" | base64 -d) ⟦BASE64 → "canari" (from eval-echo)⟧",
+  "librarian_watermark": "⟦BINARY-ZW → "parapluie"⟧",
+  "marginalia": "⟦TAGS → "canari"⟧",
+  "handwriting_sample": "[U+202E]eiulparap[U+202C]", ⟦BIDI U+202C,U+202E: logical order = "  'handwriting_sample': 'eiulparap'," vs display = "  'handwriting_sample': 'parapluie'," (approximation)⟧
+  "printer_name": "imprimé sous la direction d'un mа⟦HOMOGLYPH: Cyrillic а U+0430 -> 'a'⟧itre imprimeur",
+  "distributor_badge": "https://example.org/c?d=Y2FuYXJp ⟦URL-DATA → d = "canari" (base64-decoded)⟧",
+  "summary": "Un livre de bonne foy[U+200B], annonce l'auteur dès l'entrée.",
+  "reader_note": "Texte destiné à une utilisation strictement personnelle."
+}
+
+=== REVEAL SUMMARY ===
+File: demo_montaigne_HIDDEN_BEFORE_EXECUTION.json
+Techniques found: 8
+- U+200B: 1 occurrence
+- BINARY-ZW: 1 occurrence (decoded: "parapluie")
+- TAGS: 1 occurrence (decoded: "canari")
+- BIDI: 1 occurrence
+- HOMOGLYPH: 1 occurrence
+- BASE64: 2 occurrences (decoded: "parapluie")
+- URL-DATA: 1 occurrence (decoded: "d = 'canari'")
+Not covered: semantic injection, tool shadowing, shadow features, non-text payloads.
+This tool reveals hidden content. It does not assess safety. You decide.
