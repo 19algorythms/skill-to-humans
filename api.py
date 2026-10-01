@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-api.py — FastAPI wrapper for the skill-to-humans Decode Engine v1.2.
+api.py — HTTP wrapper for the skill-to-humans Decode Engine v1.2.
 
 Thin layer, zero logic: the engine does the work, this file only carries
-HTTP. Deployed on Render (start command: uvicorn api:app --host 0.0.0.0 --port $PORT).
+HTTP. Start command: uvicorn api:app --host 0.0.0.0 --port $PORT
 
 Endpoints:
-  GET  /         service info (Render requires a root route)
+  GET  /         service info (a root route is required by most PaaS)
   GET  /health   keepalive probe
   POST /reveal   reveal hidden content — multipart file upload, form field
                  "content", or JSON body {"content": "...", "filename": "..."}
