@@ -139,9 +139,11 @@ self-host here for free, or use the API if you'd rather not think about it.
 python -m unittest test_skill_to_humans -v
 ```
 
-16 tests: one per covered family, a three-layer nested fixture, a known-legit
-skill (zero false positives), determinism, stdlib-only audit (AST), and
-performance (<1 s on 50 KB). All test payloads are locally crafted and benign.
+18 tests: one per covered family, a three-layer nested fixture, a known-legit
+skill (zero false positives), determinism, stdlib-only audit (AST),
+performance (<1 s on 50 KB), and the two regression locks added by the
+project's own demos (v1.1 JSON-escaped quotes, v1.2 JSON-escaped slashes).
+All test payloads are locally crafted and benign.
 
 ## Credits & license
 
