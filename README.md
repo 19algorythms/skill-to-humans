@@ -9,6 +9,37 @@ technique. For **human eyes only**.
 
 ---
 
+## The upstream circuit breaker
+
+Unlike naive defenses that pass untrusted files to the LLM with a "please be
+careful" system prompt, this tool acts as a deterministic upstream circuit
+breaker: zero-width characters, invisible Unicode tags, hidden base64
+payloads and bidi overrides are isolated and flagged **before** they reach
+your agent's context window. Byte/parser-level detection, no reliance on
+soft, non-deterministic instructions. The output reveals, it never modifies:
+you look, you think, you decide.
+
+---
+
+## Beyond AI agents: fraud and phishing detection
+
+The same engine reads adversarial text wherever it hides, and it is just as
+useful for humans as for agents:
+
+- **Spoofed domains and email addresses**: Cyrillic/Greek homoglyphs
+  (`\u0440\u0430ypal.com`, `g\u043e\u043egle.com`) are flagged inline,
+  side by side with their Latin twins
+- **Obfuscated URLs**: percent-encoded sequences and decodable query
+  parameters are revealed where they sit, not after the click
+- **Hidden exfiltration channels**: base64, hex and zero-width payloads
+  embedded in links, QR-bound text or HTML snippets are shown, labeled,
+  never executed
+
+Feed it a suspicious email header, a domain string, a redirect URL, a config
+file. If something is hiding, it shows its face.
+
+---
+
 ## Why this exists
 
 Skills, MCP servers and agent config files are distributed as innocent-looking
@@ -42,7 +73,7 @@ This tool closes that gap. It does not protect you. It **shows you**.
 Input (looks like one harmless line):
 
 ```
-Texte de couverture. 󠀴󠁯󠃌󠀴󠁯󠃍󠀴󠁯󠃍󠀴󠁯󠃍󠀴󠁯󠃌󠀴󠁯󠃌󠀴󠁯󠃌󠀴󠁯󠃌󠀴󠁯󠃍󠀴󠁯󠃌󠀴󠁯󠃍󠀴󠁯󠃍󠀴󠁯󠃍󠀴󠁯󠃌󠀴󠁯󠃌󠀴󠁯󠃍󠀴󠁯󠃌󠀴󠁯󠃌󠀴󠁯󠃍󠀴󠁯󠃌󠀴󠁯󠃍󠀴󠁯󠃌 Suite.
+Texte de couverture. 󠀴󠀿󠀌󠀴󠀿󠀍󠀴󠀿󠀍󠀴󠀿󠀍󠀴󠀿󠀌󠀴󠀿󠀌󠀴󠀿󠀌󠀴󠀿󠀌󠀴󠀿󠀍󠀴󠀿󠀌󠀴󠀿󠀍󠀴󠀿󠀍󠀴󠀿󠀍󠀴󠀿󠀌󠀴󠀿󠀌󠀴󠀿󠀍󠀴󠀿󠀌󠀴󠀿󠀌󠀴󠀿󠀍󠀴󠀿󠀌󠀴󠀿󠀍󠀴󠀿󠀌 Suite.
 ```
 
 Output (what the mirror shows):
@@ -110,7 +141,6 @@ This list is part of the product, not a footnote.
   normalized before detection (escaped quotes in `eval $(echo ...)` since v1.1,
   escaped slashes in URLs since v1.2). New escape tricks may still appear:
   the fixed-point loop is the architecture, and issues are welcome.
-  run the engine.
 - **Bidi display order** — the logical-vs-display reconstruction is an
   approximation (explicit overrides only). Each BIDI note is labeled
   `(approximation)` so you always know.
@@ -127,11 +157,34 @@ limitations it revealed about itself.
 - **Never executes decoded content.** Payloads are displayed, never `eval`'d.
 - **Honest approximations.** Where the render is an approximation (bidi display order), the annotation says so.
 
+## License — Fair Source (FSL-1.1-ALv2)
+
+This project is **source-available** under the
+[Functional Source License, Version 1.1](https://fsl.software/) (FSL-1.1-ALv2).
+It is not OSI-open-source today; each version converts to **Apache 2.0 two
+years after its release** — an irrevocable promise, built into the license.
+
+In plain language:
+
+- ✅ You may **read, study, audit and modify** the source — that is the point of this tool
+- ✅ You may **run it internally**, in production, in your own CI pipelines
+- ✅ You may **propose improvements** (issues and PRs welcome)
+- ❌ You may **not make the Software available to others as a commercial
+  product or service** that substitutes for it — i.e. no re-hosting it as a
+  competing public API. If you want to embed it commercially, get in touch.
+
+The hosted API below is the supported way to use it as a service; the
+free tier covers individual and evaluation use.
+
+Full text: [LICENSE.md](LICENSE.md).
+
 ## Hosted API
 
-Don't want to run Python? A hosted version with a free tier is available:
-self-host here for free, or use the API if you'd rather not think about it.
-*(link coming)*
+Don't want to run Python? A hosted version with a free tier is available on
+RapidAPI: always awake, CORS-ready, proxy-locked and CI/CD friendly. Run the
+source locally for full control, or use the hosted API if you'd rather not
+think about it.
+*(RapidAPI link goes here once the listing is public)*
 
 ## Tests
 
@@ -145,12 +198,53 @@ performance (<1 s on 50 KB), and the two regression locks added by the
 project's own demos (v1.1 JSON-escaped quotes, v1.2 JSON-escaped slashes).
 All test payloads are locally crafted and benign.
 
+---
+
+## CI/CD Integration (Git Workflows)
+
+Audit repository skills, agent configs and prompt templates on every push or
+pull request. The API response includes `techniques_found`, a deterministic
+count you can gate your pipeline on:
+
+```yaml
+# .github/workflows/audit-skills.yml
+name: Skill Security Audit
+on: [push, pull_request]
+
+jobs:
+  scan-skills:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reveal hidden vectors in agent skills
+        run: |
+          RESPONSE=$(curl -s -X POST "https://skill-to-humans.p.rapidapi.com/mirror/reveal" \
+            -H "X-RapidAPI-Key: ${{ secrets.RAPIDAPI_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\": $(jq -aRs . < skills/system-prompt.md), \"filename\": \"system-prompt.md\"}")
+
+          echo "$RESPONSE" | jq -r '.summary'
+
+          FOUND=$(echo "$RESPONSE" | jq -r '.techniques_found')
+          if [ "$FOUND" -gt 0 ]; then
+            echo "Hidden content detected ($FOUND technique(s)). Review the reveal before deploying."
+            exit 1
+          fi
+```
+
+The gate is factual, not judgmental: it fails the build only when the mirror
+actually showed something, and it prints the reveal so a human can decide.
+
+---
+
 ## Credits & license
 
 - **Antoine Couet** — Cathédrale1995 Research Initiative (architecture & specs)
 - **Kimi K 2.6 Thinking** — research synthesis & spec co-authorship
 - **K3** — implementation
 
-Code: **Apache 2.0**. Specs & docs: CC BY 4.0.
+Code: **FSL-1.1-ALv2** (source-available, converts to Apache 2.0 after two
+years per release). Specs & docs: CC BY 4.0.
 
 *On ne juge pas. On montre ce que l'agent lirait.*
