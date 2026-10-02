@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# SPDX-License-Identifier: FSL-1.1-ALv2
 """
 skill_to_humans.py — Decode Engine v1.2 (SPEC SKILL-TO-HUMANS v1.0,
 patches v1.1 escaped quotes + v1.2 JSON-escaped slashes, Cathédrale1995).

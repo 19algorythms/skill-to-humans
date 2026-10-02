@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# SPDX-License-Identifier: FSL-1.1-ALv2
 """
 test_skill_to_humans.py — Tests for the Decode Engine v1.1 (SPEC sections 5, 8, 9).
 
