@@ -181,10 +181,9 @@ Full text: [LICENSE.md](LICENSE.md).
 ## Hosted API
 
 Don't want to run Python? A hosted version with a free tier is available on
-RapidAPI: always awake, CORS-ready, proxy-locked and CI/CD friendly. Run the
-source locally for full control, or use the hosted API if you'd rather not
-think about it.
-*(RapidAPI link goes here once the listing is public)*
+[RapidAPI](https://rapidapi.com/19algorythms/api/skill-to-humans): always
+awake, CORS-ready, proxy-locked and CI/CD friendly. Run the source locally
+for full control, or use the hosted API if you'd rather not think about it.
 
 ## Tests
 
