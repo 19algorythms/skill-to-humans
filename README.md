@@ -159,6 +159,16 @@ limitations it revealed about itself.
 - **Never executes decoded content.** Payloads are displayed, never `eval`'d.
 - **Honest approximations.** Where the render is an approximation (bidi display order), the annotation says so.
 
+## Independent verification
+
+Guarantees above are promises from us. This is the same server, seen from
+outside: the [M8ven Trust Index](https://m8ven.ai/mcp/19algorythms/skill-to-humans)
+independently inspects the code (CVE surface, tool surface, publisher
+identity). Don't take our word for it — add
+`https://m8ven.ai/api/mcp/tool-check` to your assistant and ask it to
+`check_tool` on `19algorythms/skill-to-humans`. The mirror principle,
+applied to ourselves.
+
 ## License — Fair Source (FSL-1.1-ALv2)
 
 This project is **source-available** under the
