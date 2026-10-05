@@ -157,9 +157,9 @@ limitations it revealed about itself.
 ## Guarantees
 
 - **Standard library only.** No dependency, no network call. Auditable by reading one file.
+- **The MCP adapter** (`mcp_server.py`) requires `pip install "mcp<2"`; the
+  core engine remains standard-library only.
 - **Deterministic.** Same input → same output, byte for byte. Run it twice, diff nothing.
-- **Never executes decoded content.** Payloads are displayed, never `eval`'d.
-- **Honest approximations.** Where the render is an approximation (bidi display order), the annotation says so.
 
 ## Independent verification
 
