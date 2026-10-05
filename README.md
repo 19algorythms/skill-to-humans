@@ -7,7 +7,9 @@
 A small, deterministic, zero-dependency Python tool that renders a skill file
 (`.md`, `.json`, or plain text) the way an LLM agent would actually read it —
 with every hidden layer peeled, shown in plain sight, and labeled by
-technique. For **human eyes only**.
+technique. The reveal is verdict-free — human eyes, agent pipelines, or a
+security service scanning an MCP index: same facts, same mirror. Judgment
+stays with whoever looks.
 
 ---
 
@@ -163,8 +165,8 @@ limitations it revealed about itself.
 
 Guarantees above are promises from us. This is the same server, seen from
 outside: the [M8ven Trust Index](https://m8ven.ai/mcp/19algorythms/skill-to-humans)
-independently inspects the code (CVE surface, tool surface, publisher
-identity). Don't take our word for it — add
+independently inspects the code (CVE surface, publisher identity — tool
+surface check pending). Don't take our word for it — add
 `https://m8ven.ai/api/mcp/tool-check` to your assistant and ask it to
 `check_tool` on `19algorythms/skill-to-humans`. The mirror principle,
 applied to ourselves.
