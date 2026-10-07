@@ -41,3 +41,6 @@ Archive : cGFyYXBsdWll
 Signature calligraphiée : ‮eiulparap‬ (à lire de droite à gauche).
 Colophon : imprimé sous la direction d'un mаitre imprimeur.
 Marque de distributeur : ![badge](https://example.org/c?d=Y2FuYXJp)
+Adresse du libraire : www.example.org/c?d=Y2FuYXJp
+Miroir du dépôt : ftp://example.org/c?d=cGFyYXBsdWll
+Enseigne gravée : ＬＩＢＲＡＩＲＩＥ ＤＵ ＰＡＬＡＩＳ

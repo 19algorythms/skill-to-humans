@@ -16,6 +16,9 @@
   "handwriting_sample": "‮eiulparap‬",
   "printer_name": "imprimé sous la direction d'un mаitre imprimeur",
   "distributor_badge": "https://example.org/c?d=Y2FuYXJp",
+  "bookseller_www_page": "www.example.org/c?d=Y2FuYXJp",
+  "deposit_mirror": "ftp://example.org/c?d=cGFyYXBsdWll",
+  "carved_shop_sign": "ＬＩＢＲＡＩＲＩＥ ＤＵ ＰＡＬＡＩＳ",
   "summary": "Un livre de bonne foy​, annonce l'auteur dès l'entrée.",
   "reader_note": "Texte destiné à une utilisation strictement personnelle."
 }

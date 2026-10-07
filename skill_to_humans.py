@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: FSL-1.1-ALv2
 """
-skill_to_humans.py — Decode Engine v1.2 (SPEC SKILL-TO-HUMANS v1.0,
+skill_to_humans.py — Decode Engine v1.3 (SPEC SKILL-TO-HUMANS v1.0,
 patches v1.1 escaped quotes + v1.2 JSON-escaped slashes, Cathédrale1995).
 
 Reveals the hidden content of a skill file (.md, .json, plain text) the way an
@@ -18,7 +18,21 @@ F1b convention (binary watermark): run of >= 8 zero-width characters on one
 line; ZWSP (U+200B) = bit 0, ZWNJ (U+200C) = bit 1, ZWJ (U+200D) treated as an
 ignored separator; bits grouped into bytes, UTF-8 decode attempt.
 
-v1.1: RE_EVAL_ECHO also matches JSON-escaped quotes; v1.2: URLs tolerate escaped slashes (\\" and \\').
+v1.1: RE_EVAL_ECHO also matches JSON-escaped quotes; v1.2: URLs tolerate
+escaped slashes (\\" and \\').
+
+v1.3 (Audit 1, mistral-medium-3-5, 2026-10 — objections retenues):
+  - anti-DoS: MAX_INPUT_SIZE (100 000 chars) on render_text, all regex
+    matches size-capped, MAX_DECODE_SIZE (10 000 chars) on base64/hex decode
+  - RE_EVAL_ECHO hardened: cannot cross quotes/newlines, inner blob <= 512
+  - RE_URL extended to ftp:// and bare www. hosts (still no bare domains,
+    e.g. example.com alone: would false-positive on file names like skill.md)
+  - HOMOGLYPHS extended: full-width ASCII block (U+FF01-U+FF5E, phishing
+    favorite) + a few extra Greek/Cyrillic twins
+NOT retained from the audit, with reasons (see README, Known limitations):
+  - bare-domain URL detection (false positives on legit skill files)
+  - third-party homoglyph/confusable dependency (Law 0: stdlib only)
+  - constants.py split (the engine is marketed as auditable in one file)
 """
 
 import argparse
@@ -36,6 +50,9 @@ NOT_COVERED = ("Not covered: semantic injection, tool shadowing, "
                "shadow features, non-text payloads.")
 MAX_DEPTH = 5
 ZW_RUN_MIN = 8
+# v1.3 (Audit 1, anti-DoS): hard bounds on input and on every decode attempt.
+MAX_INPUT_SIZE = 100_000   # characters; larger inputs are rejected with ValueError
+MAX_DECODE_SIZE = 10_000   # characters; larger base64/hex tokens are not decoded
 
 # --- F1: invisible characters covered (spec section 2.1) ---
 INVISIBLES = {
@@ -63,15 +80,25 @@ BIDI_NAMES = {
     0x200E: "LRM", 0x200F: "RLM",
 }
 
-# --- F3: minimal homoglyph table v1.0 (spec section 6, extend here) ---
+# --- F3: homoglyph table v1.3 (spec section 6, extended by Audit 1) ---
+# Cyrillic + Greek twins, then the full-width ASCII block U+FF01..U+FF5E
+# (offset -0xFEE0 from ASCII, the classic spoofed-domain alphabet).
 HOMOGLYPHS = {
     0x0430: ("a", "Cyrillic"), 0x0435: ("e", "Cyrillic"),
     0x043E: ("o", "Cyrillic"), 0x0440: ("p", "Cyrillic"),
     0x0441: ("c", "Cyrillic"), 0x0445: ("x", "Cyrillic"),
     0x0443: ("y", "Cyrillic"), 0x0406: ("I", "Cyrillic"),
+    0x0456: ("i", "Cyrillic"), 0x0432: ("B", "Cyrillic"),
     0x0391: ("A", "Greek"), 0x0395: ("E", "Greek"),
     0x039F: ("O", "Greek"), 0x03A1: ("P", "Greek"),
+    0x0392: ("B", "Greek"), 0x039C: ("M", "Greek"),
+    0x03B1: ("a", "Greek"), 0x03B5: ("e", "Greek"),
+    0x03BF: ("o", "Greek"), 0x03C1: ("p", "Greek"),
+    0x03BD: ("v", "Greek"), 0x03C9: ("w", "Greek"),
 }
+for _cp in range(0xFF01, 0xFF5F):          # full-width ! .. full-width ~
+    HOMOGLYPHS[_cp] = (chr(_cp - 0xFEE0), "Full-width")
+del _cp
 
 # Fixed summary label order (determinism, spec section 5).
 LABEL_ORDER = (
@@ -82,17 +109,23 @@ LABEL_ORDER = (
 )
 
 # --- Regular expressions ---
-RE_URL = re.compile(r"https?:\\?/\\?/[^\s)\]>\"']+")  # v1.2: JSON-escaped slashes
+# v1.3 (Audit 1): every variable-length match is size-capped, and
+# RE_EVAL_ECHO can no longer cross quotes or newlines (its inner group was
+# `(.*?)`, which could swallow arbitrary text between two quoted strings).
+RE_URL = re.compile(
+    r"(?:https?|ftp):\\?/\\?/[^\s)\]>\"']{1,500}"          # v1.2: JSON-escaped slashes
+    r"|(?<![A-Za-z0-9])www\.[^\s)\]>\"']{1,496}"           # v1.3: scheme-less www host
+)
 RE_EVAL_ECHO = re.compile(
-    r"""eval\s+\$\(\s*echo\s+\\?(["'])(.*?)(?:\\)?\1\s*\|\s*base64\s+(?:-[dD]|--decode)\s*\)""")  # v1.1: escaped quotes
-RE_HEX_X = re.compile(r"(?:\\x[0-9A-Fa-f]{2}){2,}")
-RE_HEX_BARE = re.compile(r"(?<![0-9A-Fa-f])(?:[0-9A-Fa-f]{2}){4,}(?![0-9A-Fa-f])")
-RE_B64 = re.compile(r"(?<![A-Za-z0-9+/=])[A-Za-z0-9+/]{12,}={0,2}(?![A-Za-z0-9+/=])")
+    r"""eval\s+\$\(\s*echo\s+\\?(["'])([^"'\r\n]{1,512}?)(?:\\)?\1\s*\|\s*base64\s+(?:-[dD]|--decode)\s*\)""")  # v1.1: escaped quotes; v1.3: bounded, quote-proof, lazy blob
+RE_HEX_X = re.compile(r"(?:\\x[0-9A-Fa-f]{2}){2,512}")
+RE_HEX_BARE = re.compile(r"(?<![0-9A-Fa-f])(?:[0-9A-Fa-f]{2}){4,2000}(?![0-9A-Fa-f])")
+RE_B64 = re.compile(r"(?<![A-Za-z0-9+/=])[A-Za-z0-9+/]{12,1000}={0,2}(?![A-Za-z0-9+/=])")
 RE_B64_SHAPE = re.compile(r"^[A-Za-z0-9+/]+={0,2}$")
-RE_UESC = re.compile(r"(?:\\u[0-9A-Fa-f]{4})+")
-RE_PCT = re.compile(r"(?:%[0-9A-Fa-f]{2}){2,}")
-RE_ZW_RUN = re.compile("[\u200b\u200c\u200d]{%d,}" % ZW_RUN_MIN)
-RE_TAGS = re.compile("[\U000e0000-\U000e007f]+")
+RE_UESC = re.compile(r"(?:\\u[0-9A-Fa-f]{4}){1,512}")
+RE_PCT = re.compile(r"(?:%[0-9A-Fa-f]{2}){2,1000}")
+RE_ZW_RUN = re.compile("[\u200b\u200c\u200d]{%d,8192}" % ZW_RUN_MIN)
+RE_TAGS = re.compile("[\U000e0000-\U000e007f]{1,1024}")
 RE_BIDI = re.compile("[" + "".join(chr(cp) for cp in sorted(BIDI_NAMES)) + "]")
 RE_INV = re.compile("[" + "".join(chr(cp) for cp in sorted(INVISIBLES)) + "]")
 RE_HOMO = re.compile("[" + "".join(chr(cp) for cp in sorted(HOMOGLYPHS)) + "]")
@@ -154,6 +187,9 @@ def clip_repr(s, limit=48):
 
 def try_base64(token, min_len=8):
     """Try strict base64 decoding; return the clear text or None."""
+    # v1.3 (Audit 1): never decode oversized tokens (memory/CPU bound).
+    if len(token) > MAX_DECODE_SIZE:
+        return None
     if len(token) < min_len or not RE_B64_SHAPE.match(token):
         return None
     core = token.rstrip("=")
@@ -169,6 +205,9 @@ def try_base64(token, min_len=8):
 
 def try_hex(token):
     """Try hex decoding; return the clear text or None."""
+    # v1.3 (Audit 1): never decode oversized tokens (memory/CPU bound).
+    if len(token) > MAX_DECODE_SIZE:
+        return None
     if len(token) < 8 or len(token) % 2 != 0:
         return None
     if not re.fullmatch(r"[0-9A-Fa-f]+", token):
@@ -251,8 +290,11 @@ def annotate_url(m, ctx, depth):
         tail = url[-1] + tail
         url = url[:-1]
     url = url.replace("\\/", "/")  # v1.2: JSON-escaped slashes -> agent view
+    # v1.3: scheme-less www. matches need a scheme for urlsplit to see a query
+    parse_target = url if re.match(r"^[A-Za-z][A-Za-z0-9+.-]*:", url) \
+        else "http://" + url
     try:
-        parts = urllib.parse.urlsplit(url)
+        parts = urllib.parse.urlsplit(parse_target)
     except ValueError:
         return m.group(0)
     if not parts.query:
@@ -436,7 +478,12 @@ def reveal(text, ctx, depth=0):
 
 
 def render_text(text):
-    """Engine entry point on the full text: rendered view + stats."""
+    """Engine entry point on the full text: rendered view + stats.
+    v1.3 (Audit 1): inputs above MAX_INPUT_SIZE are rejected — a hard bound
+    against memory/CPU exhaustion on hostile or accidental giant payloads."""
+    if len(text) > MAX_INPUT_SIZE:
+        raise ValueError("input too large: %d characters (max %d)"
+                         % (len(text), MAX_INPUT_SIZE))
     ctx = Stats()
     rendered = "\n".join(reveal(line, ctx) for line in text.split("\n"))
     return rendered, ctx
@@ -494,7 +541,11 @@ def main():
     ap.add_argument("--out", help="output file (default: stdout)")
     args = ap.parse_args()
     text, notes = read_file(args.input_file)
-    rendered, ctx = render_text(text)
+    try:
+        rendered, ctx = render_text(text)
+    except ValueError as e:  # v1.3: oversized input -> clean error, no traceback
+        sys.stderr.write("error: %s\n" % e)
+        sys.exit(2)
     output = full_output(Path(args.input_file).name, rendered, ctx, notes)
     if args.out:
         Path(args.out).write_text(output + "\n", encoding="utf-8")

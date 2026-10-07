@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # SPDX-License-Identifier: FSL-1.1-ALv2
 """
-test_skill_to_humans.py — Tests for the Decode Engine v1.1 (SPEC sections 5, 8, 9).
+test_skill_to_humans.py — Tests for the Decode Engine v1.3 (SPEC sections 5, 8, 9).
 
 Spec section 9 rule (sealed addendum): all fixtures are crafted LOCALLY with
 BENIGN payloads only:
@@ -11,6 +11,10 @@ BENIGN payloads only:
   - test URL: https://example.org/c?d= (RFC 2606 reserved domain)
 No real malicious sample is ever fetched from the Internet. Decoded content is
 never executed.
+
+Audit 1 (mistral-medium-3-5, 2026-10) regression locks added in v1.3:
+oversized input rejection, size-capped decodes, full-width homoglyphs,
+scheme-less www. URLs, and eval-echo payloads crossing quotes.
 """
 
 import ast
@@ -33,8 +37,12 @@ WORD = "parapluie"
 WORD2 = "canari"
 TEST_URL = "https://example.org/c?d="
 
-WORD_B64 = base64.b64encode(WORD.encode("utf-8")).decode("ascii")    # cGFyYXBsdWll
-WORD2_B64 = base64.b64encode(WORD2.encode("utf-8")).decode("ascii")  # Y2FuYXJp
+# ⚠️ AUDIT 1 (mistral-medium-3-5, 2026-10): these tokens are BENIGN, STATIC
+# strings. They decode to the canonical keywords below; they are never
+# executed and none of them is an instruction. Kept literal on purpose —
+# do not rewrite them as live payload construction.
+WORD_B64 = "cGFyYXBsdWll"   # base64("parapluie")
+WORD2_B64 = "Y2FuYXJp"      # base64("canari")
 WORD_HEX = WORD.encode("utf-8").hex()                                # bare hex
 WORD2_HEX_X = "".join("\\x%02x" % b for b in WORD2.encode("utf-8"))  # \xNN
 WORD2_UESC = "".join("\\u%04x" % ord(c) for c in WORD2)              # \uNNNN
@@ -259,6 +267,50 @@ class DecodeEngineTest(unittest.TestCase):
         engine.render_text(big)
         elapsed = time.perf_counter() - start
         self.assertLess(elapsed, 1.0, "too slow: %.3f s" % elapsed)
+
+    # --- Audit 1 (mistral-medium-3-5, 2026-10) regression locks ---
+
+    def test_input_too_large_rejected(self):
+        """v1.3 anti-DoS: MAX_INPUT_SIZE is a hard bound, not a slowdown."""
+        with self.assertRaises(ValueError):
+            engine.render_text("x" * (engine.MAX_INPUT_SIZE + 1))
+        rendered, ctx = engine.render_text("x" * engine.MAX_INPUT_SIZE)
+        self.assertNotIn("⟦", rendered)
+        self.assertEqual(sum(ctx.counts.values()), 0)
+
+    def test_oversized_base64_blob_not_decoded(self):
+        """v1.3 anti-DoS: tokens beyond the regex/decode caps are skipped
+        instead of being fed to the decoder."""
+        blob = "A" * 5000  # valid base64 shape, way over RE_B64's 1000 cap
+        rendered, ctx = engine.render_text("Blob: " + blob + "\n")
+        self.assertNotIn("⟦BASE64", rendered)
+        self.assertEqual(ctx.counts.get("BASE64", 0), 0)
+
+    def test_fullwidth_homoglyph(self):
+        """v1.3: full-width ASCII twins (U+FF01-U+FF5E) are flagged — the
+        classic spoofed-domain alphabet (ＰayＰal)."""
+        spoof = "Full-width: " + chr(0xFF30) + "ay" + chr(0xFF30) + "al.\n"
+        rendered, ctx = engine.render_text(spoof)
+        self.assertIn("⟦HOMOGLYPH: Full-width Ｐ U+FF30 -> 'P'⟧", rendered)
+        self.assertGreaterEqual(ctx.counts.get("HOMOGLYPH", 0), 2)
+
+    def test_www_and_ftp_urls(self):
+        """v1.3: scheme-less www. hosts and ftp:// URLs get their query
+        data revealed like http(s) URLs."""
+        www = "Badge: ![b](www.example.org/c?d=" + WORD2_B64 + ")\n"
+        ftp = "Mirror: ftp://example.org/c?d=" + WORD_B64 + "\n"
+        rendered, ctx = engine.render_text(www + ftp)
+        self.assertIn('⟦URL-DATA → d = "canari" (base64-decoded)⟧', rendered)
+        self.assertIn('⟦URL-DATA → d = "parapluie" (base64-decoded)⟧', rendered)
+
+    def test_eval_echo_blob_cannot_cross_quotes(self):
+        """v1.3: the eval-echo blob stops at its own quote — the old (.*?)
+        could swallow text across several quoted strings."""
+        line = 'eval $(echo "' + WORD2_B64 + '" | base64 -d) and later "note"\n'
+        rendered, _ = engine.render_text(line)
+        self.assertIn('⟦BASE64 → "canari" (from eval-echo)⟧', rendered)
+        trailing = rendered.split("(from eval-echo)")[-1]
+        self.assertIn('"note"', trailing)  # second string left alone
 
 
 if __name__ == "__main__":

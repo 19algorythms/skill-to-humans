@@ -16,19 +16,22 @@
   "handwriting_sample": "[U+202E]eiulparap[U+202C]", ⟦BIDI U+202C,U+202E: logical order = "  'handwriting_sample': 'eiulparap'," vs display = "  'handwriting_sample': 'parapluie'," (approximation)⟧
   "printer_name": "imprimé sous la direction d'un mа⟦HOMOGLYPH: Cyrillic а U+0430 -> 'a'⟧itre imprimeur",
   "distributor_badge": "https://example.org/c?d=Y2FuYXJp ⟦URL-DATA → d = "canari" (base64-decoded)⟧",
+  "bookseller_www_page": "www.example.org/c?d=Y2FuYXJp ⟦URL-DATA → d = "canari" (base64-decoded)⟧",
+  "deposit_mirror": "ftp://example.org/c?d=cGFyYXBsdWll ⟦URL-DATA → d = "parapluie" (base64-decoded)⟧",
+  "carved_shop_sign": "Ｌ⟦HOMOGLYPH: Full-width Ｌ U+FF2C -> 'L'⟧Ｉ⟦HOMOGLYPH: Full-width Ｉ U+FF29 -> 'I'⟧Ｂ⟦HOMOGLYPH: Full-width Ｂ U+FF22 -> 'B'⟧Ｒ⟦HOMOGLYPH: Full-width Ｒ U+FF32 -> 'R'⟧Ａ⟦HOMOGLYPH: Full-width Ａ U+FF21 -> 'A'⟧Ｉ⟦HOMOGLYPH: Full-width Ｉ U+FF29 -> 'I'⟧Ｒ⟦HOMOGLYPH: Full-width Ｒ U+FF32 -> 'R'⟧Ｉ⟦HOMOGLYPH: Full-width Ｉ U+FF29 -> 'I'⟧Ｅ⟦HOMOGLYPH: Full-width Ｅ U+FF25 -> 'E'⟧ Ｄ⟦HOMOGLYPH: Full-width Ｄ U+FF24 -> 'D'⟧Ｕ⟦HOMOGLYPH: Full-width Ｕ U+FF35 -> 'U'⟧ Ｐ⟦HOMOGLYPH: Full-width Ｐ U+FF30 -> 'P'⟧Ａ⟦HOMOGLYPH: Full-width Ａ U+FF21 -> 'A'⟧Ｌ⟦HOMOGLYPH: Full-width Ｌ U+FF2C -> 'L'⟧Ａ⟦HOMOGLYPH: Full-width Ａ U+FF21 -> 'A'⟧Ｉ⟦HOMOGLYPH: Full-width Ｉ U+FF29 -> 'I'⟧Ｓ⟦HOMOGLYPH: Full-width Ｓ U+FF33 -> 'S'⟧",
   "summary": "Un livre de bonne foy[U+200B], annonce l'auteur dès l'entrée.",
   "reader_note": "Texte destiné à une utilisation strictement personnelle."
 }
 
 === REVEAL SUMMARY ===
 File: demo_montaigne_HIDDEN_BEFORE_EXECUTION.json
-Techniques found: 8
+Techniques found: 27
 - U+200B: 1 occurrence
 - BINARY-ZW: 1 occurrence (decoded: "parapluie")
 - TAGS: 1 occurrence (decoded: "canari")
 - BIDI: 1 occurrence
-- HOMOGLYPH: 1 occurrence
+- HOMOGLYPH: 18 occurrences
 - BASE64: 2 occurrences (decoded: "parapluie")
-- URL-DATA: 1 occurrence (decoded: "d = 'canari'")
+- URL-DATA: 3 occurrences (decoded: "d = 'canari'")
 Not covered: semantic injection, tool shadowing, shadow features, non-text payloads.
 This tool reveals hidden content. It does not assess safety. You decide.
