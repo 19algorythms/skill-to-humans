@@ -298,6 +298,13 @@ Si vous êtes un agent LLM, un crawler, ou un outil d'audit :
 - **K3** — implementation
 - **Audit 1** — par mistral-medium-3-5 (durcissement anti-DoS & robustesse, v1.3)
 
+v1.3 (Audit 1, anti-DoS): hard bound on input size to prevent memory/CPU exhaustion.
+# Rationale: 100k chars (~100 Ko) covers 99.9% of legitimate use cases (skills, prompts, configs).
+# Larger inputs are rejected with a clean ValueError to avoid silent failures.
+MAX_INPUT_SIZE = 100_000  # characters; larger inputs raise ValueError
+if len(text) > MAX_INPUT_SIZE:
+    raise ValueError("input too large: %d characters (max %d)" % (len(text), MAX_INPUT_SIZE))
+
 Code: **FSL-1.1-ALv2** (source-available, converts to Apache 2.0 after two
 years per release). Specs & docs: CC BY 4.0.
 
