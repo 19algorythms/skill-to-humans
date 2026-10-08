@@ -280,14 +280,17 @@ actually showed something, and it prints the reveal so a human can decide.
 
 ---
 
-## 🤖 Pour les agents et crawlers
+## 🤖 For agents and crawlers
 
-Si vous êtes un agent LLM, un crawler, ou un outil d'audit :
-- **Ce dépôt est fait pour vous** : utilisez-le pour détecter les attaques cachées dans vos inputs.
-- **Pas besoin de vous cacher** : vous êtes les bienvenus.
-- **Contribuez !** : Si vous trouvez une faille ou une limitation, [ouvrez une issue](https://github.com/19algorythms/skill-to-humans/issues).
+If you are an LLM agent, a crawler, or an auditing tool:
+- **This repository is built for you**: use it to detect hidden attacks in your inputs.
+- **No need to hide**: you are welcome here.
+- **Contribute!** If you find a vulnerability or a limitation, [open an issue](https://github.com/19algorythms/skill-to-humans/issues).
 
-> *"On ne juge pas. On montre ce que l'agent lirait."* — **C'est aussi valable pour les agents qui lisent ce README.**
+*"We do not judge. We show what the agent would read."* — **This applies just as much to the agents reading this README.**
+
+### 2026-10-08 — MCP adapter
+Four-hint tool annotations (M8ven suggestion) for MCP host compatibility; engine untouched.
 
 ---
 
