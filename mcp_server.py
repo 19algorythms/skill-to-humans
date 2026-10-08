@@ -2,12 +2,24 @@
 # Le cœur (skill_to_humans.py) n'est PAS modifié.
 # Dépendance : pip install "mcp>=1.0,<2" (v1.x — l'API 2.x a renommé FastMCP en MCPServer)
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 import skill_to_humans as m
 
 mcp = FastMCP("skill-to-humans", host="127.0.0.1", port=8000)
 
+# Annotations explicites (suggestion M8ven / Audit 2) : les hôtes MCP — dont
+# l'annuaire OpenAI — exigent les quatre hints booléens. reveal ne lit que
+# son argument et ne touche aucun état externe ; la sortie est déterministe
+# (même entrée -> même sortie, byte-for-byte, Loi 4).
+REVEAL_ANNOTATIONS = ToolAnnotations(
+    readOnlyHint=True,      # transforme l'input fourni, zéro effet externe
+    destructiveHint=False,  # ne détruit/modifie rien
+    idempotentHint=True,    # déterministe byte-for-byte
+    openWorldHint=False,    # aucun accès à des systèmes externes
+)
 
-@mcp.tool()
+
+@mcp.tool(annotations=REVEAL_ANNOTATIONS)
 def reveal(content: str, filename: str = "input.txt") -> str:
     """Reveal hidden content (zero-width characters, Unicode tags, nested
     base64, bidi overrides, homoglyphs) the way an LLM agent would read it.
