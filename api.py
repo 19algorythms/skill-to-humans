@@ -137,14 +137,17 @@ async def reveal(
             body = await request.json()
         except Exception:
             body = None
-        if not body or "content" not in body:
+        # Hardened: a JSON body must be an object whose "content" is a
+        # string — otherwise malformed payloads (JSON string/list/int)
+        # crashed with a 500 instead of a clean 400.
+        if not isinstance(body, dict) or not isinstance(body.get("content"), str):
             return JSONResponse(
                 status_code=400,
                 content={"error": "send a multipart file, form field 'content', "
                                   "or JSON body {'content': '...'} "},
             )
         text = body["content"]
-        name = body.get("filename", name)
+        name = body["filename"] if isinstance(body.get("filename"), str) else name
 
     if len(text) > MAX_CONTENT_SIZE:
         return JSONResponse(status_code=413,
