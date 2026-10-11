@@ -1,5 +1,7 @@
 # 🪞 SKILL-TO-HUMANS — Decode Engine v1.0
 
+[![M8ven Score](https://m8ven.ai/badge/mcp/19algorythms/skill-to-humans)](https://m8ven.ai/mcp/19algorythms/skill-to-humans?s=readme)
+
 **Reveal what the agent would read. You decide what it means.**
 
 A small, deterministic, zero-dependency Python tool that renders a skill file
